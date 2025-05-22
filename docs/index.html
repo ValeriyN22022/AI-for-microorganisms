@@ -1,0 +1,82 @@
+<!doctype html>http://localhost:4000/
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + React + TS</title>
+    <script type="module" crossorigin src="/assets/index-DJ9VV7vM.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-Bigdky-V.css">
+  </head>
+  <body>
+    <div id="root"></div>
+        <script>
+        // Открытие модального окна
+        document.getElementById('uploadBtn').addEventListener('click', function() {
+            document.getElementById('uploadModal').style.display = 'flex';
+        });
+
+        // Закрытие модального окна
+        document.getElementById('closeModal').addEventListener('click', function() {
+            document.getElementById('uploadModal').style.display = 'none';
+        });
+
+        // Закрытие при клике вне модального окна
+        window.addEventListener('click', function(event) {
+            if (event.target === document.getElementById('uploadModal')) {
+                document.getElementById('uploadModal').style.display = 'none';
+            }
+        });
+
+        // Обработка drag and drop
+        const dropArea = document.getElementById('dropArea');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            dropArea.style.borderColor = '#3498db';
+            dropArea.style.backgroundColor = 'rgba(52, 152, 219, 0.1)';
+        }
+
+        function unhighlight() {
+            dropArea.style.borderColor = '#ccc';
+            dropArea.style.backgroundColor = '';
+        }
+
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            if (files.length) {
+                const file = files[0];
+                if (file.type.match('image.*')) {
+                    alert(`Файл "${file.name}" готов к загрузке!`);
+                    // Здесь можно добавить код для реальной загрузки файла
+                } else {
+                    alert('Пожалуйста, загружайте только изображения');
+                }
+            }
+        }
+    </script>
+  </body>
+</html>
