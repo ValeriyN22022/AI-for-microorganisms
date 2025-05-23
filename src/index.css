@@ -1,6 +1,7 @@
         :root {
             --primary-color: #2c3e50;
-            --secondary-color: #3498db;
+            --secondary-color: #ffffff;
+            --thirth-color: #3498db;
             --accent-color: #e74c3c;
             --light-bg: #f8f9fa;
             --dark-text: #2c3e50;
@@ -33,7 +34,7 @@
         
         /* Навигация */
         header {
-            background-color: white;
+           background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             position: sticky;
             top: 0;
@@ -45,18 +46,25 @@
             justify-content: space-between;
             align-items: center;
             padding: 20px 0;
+            
         }
         
         .logo {
             font-size: 24px;
             font-weight: bold;
-            color: var(--primary-color);
+            color:white;
+            min-width:315px;
+            
         }
         
         .logo span {
-            color: var(--secondary-color);
+            color: white;
         }
-        
+        .logo-img{
+           width: 40px;
+           height: 5px;
+           color: white; 
+        }
         .nav-links {
             display: flex;
             gap: 30px;
@@ -119,7 +127,7 @@
         }
         
         .upload-btn {
-            background-color: var(--secondary-color);
+            background-color: var(--thirth-color);
             color: white;
             border: none;
             padding: 15px 40px;
@@ -176,7 +184,7 @@
         
         .feature-icon {
             font-size: 2.5rem;
-            color: var(--secondary-color);
+            color: var(--thirth-color);
             margin-bottom: 20px;
         }
         
@@ -218,7 +226,7 @@
         }
         
         .footer-links a:hover {
-            color: var(--secondary-color);
+            color: var(--thirth-color);
         }
         
         .copyright {
