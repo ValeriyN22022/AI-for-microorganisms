@@ -1,4 +1,6 @@
 import './App.css'
+const logoImg = '../public/logo.svg'
+import ImageUploadForm from './ImageUploadForm';
 
 function App() {
 
@@ -8,11 +10,7 @@ function App() {
         <div className="container">
             <nav>
                 <div className="logo">
-                    <div className="logo-img">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 22V12M12 8V2M4.93 10.93L6.34 12.34M17.66 12.34L19.07 10.93M2 18H4M20 18H22M12 19C14.2091 19 16 17.2091 16 15C16 12.7909 14.2091 11 12 11C9.79086 11 8 12.7909 8 15C8 17.2091 9.79086 19 12 19Z" stroke-linecap="round" stroke-linejoin="round"></path>
-                        </svg>
-                    </div>
+                        <img  src={logoImg} className="logo-img" alt="logo" />
                     AI<span>Microscope</span>
                 </div>
                 <div className="nav-links">
@@ -30,12 +28,7 @@ function App() {
             <p>Данный интерфейс предлагает доступ к искусственному интеллекту для обнаружения и коллекционирования различных микроорганизмов, их видов, форм и размеров.</p>
             <p>Вы можете загрузить свои фотографии микроорганизмов для того чтобы наш искусственный интеллект их обработал и сэкономил ваше время и силы.</p>
             
-            <div className="upload-container">
-                <button className="upload-btn" id="uploadBtn">
-                    <i className="fas fa-cloud-upload-alt"></i>
-                    ЗАГРУЗИТЬ ИЗОБРАЖЕНИЕ
-                </button>
-            </div>
+            <ImageUploadForm/>
         </div>
     </section>
 
@@ -96,7 +89,7 @@ function App() {
     <footer>
         <div className="container">
             <div className="footer-content">
-                <div className="footer-logo">AI<span>Microscope</span></div>
+                <div className="footer-logo"><img src={logoImg} className="logo-img" alt="" /> AI<span>Microscope</span></div>
                 <div className="footer-links">
                     <a href="#">Главная</a>
                     <a href="#">О проекте</a>
