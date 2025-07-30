@@ -1,14 +1,49 @@
 import './App.css'
 const logoImg = '../public/logo.svg'
+import React, { useState, useEffect } from 'react';
 import ImageUploadForm from './ImageUploadForm';
+import { auth, provider } from './firebase';
+import { signInWithPopup, User } from 'firebase/auth';
+import { AnalysisResults } from './AnalysisResults';
 
-function App() {
+
+
+const App: React.FC = () => {
+    const [user, setUser] = useState<User | null>(null);
+
+    const handleLogin = async () => {
+        try {
+            const result = await signInWithPopup(auth, provider);
+            setUser(result.user);
+        } catch (error) {
+            console.error('Login failed:', error);
+        }
+    };
+
+    const handleLogout = () => {
+        auth.signOut();
+        setUser(null);
+    };
+
+    useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            setUser(user);
+        });
+
+    return () => unsubscribe();
+  }, []);
 
   return (
     <>
     <header>
         <div className="container">
             <nav>
+                {user? (<div className="profile-icon">
+                    <img src={user?.photoURL || ''} alt="User avatar" className="profile-img" />
+                    <button onClick={handleLogout} className="logout-btn">Logout</button>
+                </div>) : (
+                    <button onClick={handleLogin} className="login-btn">Login with Google</button>
+                )}
                 <div className="logo">
                         <img  src={logoImg} className="logo-img" alt="logo" />
                     AI<span>Microscope</span>
@@ -19,6 +54,7 @@ function App() {
                     <a href="#">Увидеть результат</a>
                 </div>
             </nav>
+            <h1>Microorganism Analyzer</h1>
         </div>
     </header>
 
@@ -28,7 +64,18 @@ function App() {
             <p>Данный интерфейс предлагает доступ к искусственному интеллекту для обнаружения и коллекционирования различных микроорганизмов, их видов, форм и размеров.</p>
             <p>Вы можете загрузить свои фотографии микроорганизмов для того чтобы наш искусственный интеллект их обработал и сэкономил ваше время и силы.</p>
             
-            <ImageUploadForm/>
+        <div className="container mx-auto p-4">
+           {user ? (
+            <>
+                <ImageUploadForm userId={user.uid} />
+                <AnalysisResults userId={user.uid} />
+            </>
+            ) : (
+            <div className="login-prompt">
+                <p className="text-gray-600">Please login to analyze images</p>
+            </div>
+            )}
+        </div>
         </div>
     </section>
 

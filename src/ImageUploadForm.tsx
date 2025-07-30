@@ -1,129 +1,110 @@
-import React, { useState, ChangeEvent, FormEvent } from 'react';
-import axios, { AxiosError, AxiosProgressEvent } from 'axios';
-import './ImageUploadForm.css'
+import React, { useState, ChangeEvent } from 'react';
+import { uploadFile, signInWithGoogle, User, db } from './firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { v4 as uuidv4 } from 'uuid';
+import './ImageUploadForm.css';
 
-const ImageUploadForm: React.FC = () => {
+const FileUploader: React.FC<{ userId: string }> = ({ userId }) => {
   const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState<boolean>(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<boolean>(false);
-  const [progress, setProgress] = useState<number>(0);
+  const [result, setResult] = useState<{ url: string; ref: string } | null>(null);
+  
+  // Генерируем уникальный ID для анализа
+  const analysisId = uuidv4();
+  const storagePath = `uploads/${userId}/${analysisId}_`;
 
-  // Обработчик изменения файла
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
-      setError(null);
     }
   };
 
-  // Обработчик отправки формы
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    
-    if (!file) {
-      setError('Пожалуйста, выберите файл');
+  const handleUpload = async () => {
+    if  (!file || !userId) {
+      setError('Выберите файл');
       return;
     }
 
-    // Проверка размера файла (например, до 10MB)
-    const MAX_FILE_SIZE = 10 * 1024 * 1024;
-    if (file.size > MAX_FILE_SIZE) {
-      setError('Файл слишком большой (максимум 10MB)');
-      return;
-    }
-
-    setUploading(true);
+    setLoading(true);
     setError(null);
-    setSuccess(false);
-    setProgress(0);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      if (!user) {
+        const signedInUser = await signInWithGoogle();
+        setUser(signedInUser);
+      }
+      
+      const uploadResult = await uploadFile(file,storagePath);
+      setResult(uploadResult);
 
-      // Замените URL на ваш Google Apps Script или API endpoint
-      const response = await axios.post<{
-        status: string;
-        fileId?: string;
-        url?: string;
-        message?: string;
-      }>(
-        'https://script.google.com/macros/s/AKfycbyVRcnnOI2tm3mZ2W0Fzgs0C-Yu79xPIzXubL5hwJyTzLm3ueA0fqscp5CtYM4vLbcKgQ/exec',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-          onUploadProgress: (progressEvent: AxiosProgressEvent) => {
-            if (progressEvent.total) {
-              const percentCompleted = Math.round(
-                (progressEvent.loaded * 100) / progressEvent.total
-              );
-              setProgress(percentCompleted);
-            }
-          },
-        }
-      );
-
-      console.log('Успешная загрузка:', response.data);
-      setSuccess(true);
+      await setDoc(doc(db, 'analysis_requests', analysisId), {
+        userId,
+        imagePath: `${storagePath}${file.name}`,
+        status: 'pending',
+        createdAt: new Date()
+      });
     } catch (err) {
-      const error = err as AxiosError | Error;
-      console.error('Ошибка загрузки:', error);
-      setError(error.message || 'Произошла ошибка при загрузке файла');
+      setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
     } finally {
-      setUploading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="upload-container">
-      <h2>Загрузка изображения</h2>
-      
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="file-upload" className="file-label">
-            {file ? file.name : 'Выберите изображение'}
-          </label>
-          <input
-            id="file-upload"
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            disabled={uploading}
-            className="file-input"
+    <div className="max-w-md mx-auto p-4 border rounded-lg">  
+      {user && (
+        <div className="mb-4">
+          <img 
+            src={user.photoURL || ''} 
+            alt="User" 
+            className="w-10 h-10 rounded-full inline-block mr-2"
           />
+          <span>{user.displayName || user.email}</span>
         </div>
+      )}
 
-        {file && (
-          <div className="preview">
-            <p>Предпросмотр:</p>
-            <img 
-              src={URL.createObjectURL(file)} 
-              alt="Preview" 
-              className="preview-image"
-            />
-          </div>
-        )}
+      <input 
+        type="file" 
+        onChange={handleFileChange} 
+        className="file-input"
+        disabled={loading}
+      />
 
-        <button 
-          type="submit" 
-          disabled={uploading || !file}
-          className="submit-button"
-        >
-          {uploading ? `Загрузка... ${progress}%` : 'Отправить'}
-        </button>
+      {file && (
+        <div className="mb-4">
+          <p className="text-gray-600">Выбран файл: {file.name}</p>
+          <p className="text-gray-600">Размер: {(file.size / 1024).toFixed(2)} KB</p>
+        </div>
+      )}
 
-        {error && <div className="error-message">{error}</div>}
-        {success && (
-          <div className="success-message">
-            Файл успешно загружен!
-          </div>
-        )}
-      </form>
+      <button
+        className='upload-btn'
+        onClick={handleUpload}
+        disabled={!file || loading}
+        
+      >
+        {loading ? 'Загрузка...' : 'Загрузить'}
+      </button>
+
+      {error && <p className="text-red-500 mt-2">{error}</p>}
+
+      {result && (
+        <div className="mt-4 p-3 bg-green-100 rounded">
+          <p className="text-green-600">Файл загружен!</p>
+          <a 
+            href={result.url} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-600 underline"
+          >
+            Открыть файл
+          </a>
+        </div>
+      )}
     </div>
   );
 };
 
-export default ImageUploadForm;
+export default FileUploader;
